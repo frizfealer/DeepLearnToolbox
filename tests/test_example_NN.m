@@ -10,6 +10,65 @@ test_y  = double(test_y);
 [train_x, mu, sigma] = zscore(train_x);
 test_x = normalize(test_x, mu, sigma);
 
+%% ex0 test coherence
+rand('state',0)
+nn = nnsetup([784 10 10]);
+nn.projTarget = -1;
+opts.numepochs =  10;   %  Number of full sweeps through data
+opts.batchsize = 100;  %  Take a mean gradient step over this many samples
+[nn, L] = nntrain(nn, train_x, train_y, opts);
+
+[er, bad] = nntest(nn, test_x, test_y);
+
+% assert(er < 0.08, 'Too big error');
+
+nn2 = nnsetup([784 10 10]);
+nn2.cohSqcost =0.001;
+nn2.projTarget = -1;
+opts.numepochs =  10;   %  Number of full sweeps through data
+opts.batchsize = 100;  %  Take a mean gradient step over this many samples
+[nn2, L] = nntrain(nn2, train_x, train_y, opts);
+ins = nn.W{1}(:, 2:end);
+ins = ins*ins'; ins = ins.^2;
+ins = triu(ins,1); aaa= sum(ins(:));
+ins = nn.W{2}(:, 2:end); 
+ins = ins*ins'; ins = ins.^2;
+ins = triu(ins,1); aaa = aaa+sum(ins(:));
+% 
+ins = nn2.W{1}(:, 2:end);
+ins = ins*ins'; ins = ins.^2;
+ins = triu(ins,1); bbb = sum(ins(:));
+ins = nn2.W{2}(:, 2:end);
+ins = ins*ins';ins = ins.^2;
+ins = triu(ins,1); bbb = bbb+sum(ins(:));
+
+ins = nn.W{1}(:, 2:end);
+ins = (ins*ins').^2;
+figure; subplot(1, 2, 1); imagesc(ins), title( 'coherence of W' ); xlabel( 'h-unit' ); ylabel( 'h-unit' ); colorbar;
+
+ins = nn2.W{1}(:, 2:end); 
+ins = (ins*ins').^2;
+subplot(1, 2, 2); imagesc(ins), title( 'coherence of W' ); xlabel( 'h-unit' ); ylabel( 'h-unit' ); colorbar;
+
+ins = nn.W{1}(:, 2:end); 
+for i = 1:size(ins, 1)
+    ins(i, :) = ins(i, :) / norm(ins(i, :));
+end
+ins = (ins*ins');
+figure; subplot(1, 2, 1); imagesc(abs(ins)), title( 'coherence of W' ); xlabel( 'h-unit' ); ylabel( 'h-unit' ); colorbar;
+
+ins = nn2.W{1}(:, 2:end); 
+for i = 1:size(ins, 1)
+    ins(i, :) = ins(i, :) / norm(ins(i, :));
+end
+ins = (ins*ins');
+subplot(1, 2, 2); imagesc(abs(ins)), title( 'coherence of W' ); xlabel( 'h-unit' ); ylabel( 'h-unit' ); colorbar;
+
+% 
+% 
+% [er, bad] = nntest(nn, test_x, test_y);
+
+
 %% ex1 vanilla neural net
 rand('state',0)
 nn = nnsetup([784 100 10]);

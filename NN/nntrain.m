@@ -34,6 +34,12 @@ assert(rem(numbatches, 1) == 0, 'numbatches must be a integer');
 
 L = zeros(numepochs*numbatches,1);
 n = 1;
+if length(nn.dropoutFraction) == 1
+    nn.dropoutFraction = repmat( nn.dropoutFraction, 1, length(nn.size) );
+    nn.dropoutFraction(1) = 0; nn.dropoutFraction(end) = 0;
+else
+    assert( length(nn.dropoutFraction) == length(nn.size) ); 
+end
 for i = 1 : numepochs
     tic;
     
@@ -72,6 +78,7 @@ for i = 1 : numepochs
         
     disp(['epoch ' num2str(i) '/' num2str(opts.numepochs) '. Took ' num2str(t) ' seconds' '. Mini-batch mean squared error on training set is ' num2str(mean(L((n-numbatches):(n-1)))) str_perf]);
     nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+    save( [ nn.name '_tmp.mat'], 'nn' );
 end
 end
 
